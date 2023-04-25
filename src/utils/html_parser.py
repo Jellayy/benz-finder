@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 import datetime as dt
+import logging
 
 
 def filter_listings(listings):
@@ -7,7 +8,6 @@ def filter_listings(listings):
     sorted_listings = sorted(filtered_listings, key=lambda x: x['date_recieved'], reverse=True)[:5]
 
     return sorted_listings
-
 
 
 def parse_listings(html):
@@ -27,10 +27,31 @@ def parse_listings(html):
                 "date_recieved": dt.datetime.strptime(tr.find_all('td')[3].get_text().strip(), "%m-%d-%y"),
                 "row": tr.find_all('td')[4].get_text().strip(),
                 "location": tr.find_all('td')[5].get_text().strip(),
-                "color": tr.find_all('td')[6].get_text().strip()
+                "color": tr.find_all('td')[6].get_text().strip(),
+                "stock_number": tr.find_all('td')[7].get_text().strip(),
+                "VIN": tr.find_all('td')[8].get_text().strip()
             })
         
         return listings
     except Exception as e:
-        print('PARSING ERROR: {e}')
+        logging.error(f'HTML_PARSER-PARSE_LISTINGS: Parsing Error: {e}')
+        return False
+
+
+def parse_makes(html):
+    # Initiate bs4 parser
+    soup = BeautifulSoup(html, 'html.parser')
+
+    try:
+        # Find all span elements with the class 'notranslate'
+        spans = soup.find_all('span', {'class': 'notranslate'})
+
+        # Extract span text
+        makes = []
+        for span in spans:
+            makes.append(span.text)
+        
+        return makes
+    except Exception as e:
+        logging.error(f'HTML_PARSER-PARSE_MAKES: Parsing Error: {e}')
         return False
