@@ -1,5 +1,6 @@
 from interactions import Extension, slash_command, SlashContext, OptionType, slash_option
 import requests
+import utils.html_parser as html_parser
 
 
 class Commands(Extension):
@@ -38,18 +39,22 @@ class Commands(Extension):
         )
 
         if r.status_code == 200:
-            # Scrape some data
-            images = ""
-            split = r.text.split("<img width='100' src='")
-            split.pop(0)
-            iterator = 0
-            for section in split:
-                if iterator <= 24:
-                    images = images + (section.split("'>")[0] + "\n")
-                    iterator += 1
-            
-            if images != "":
-                await ctx.send(images)
+            all_listings = html_parser.parse_listings(r.text)
+            if all_listings:
+                filtered_listings = html_parser.filter_listings(all_listings)
+                message = ""
+                for listing in filtered_listings:
+                    message += f"""
+**Model Year:** {listing['model_year']}
+**Model:** {listing['model']}
+**Color:** {listing['color']}
+**Location:** {listing['location']}
+**Row:** {listing['row']}
+**Date Recieved:** {listing['date_recieved'].strftime("%A %B %m %Y")}
+**Image:** {listing['image']}
+
+                    """
+                await ctx.send(message)
             else:
                 await ctx.send(f"No listings found for Make: {make} Model: {model}")
         else:
