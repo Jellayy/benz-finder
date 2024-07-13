@@ -1,0 +1,9 @@
+vehicles:
+  - make: Ford
+    models:
+      - FORD F150 PICKUP
+    years: 
+      - 1995
+
+locations:
+  - Glendale

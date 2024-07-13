@@ -1,30 +1,17 @@
-import interactions
-import os
-import logging
+import schedule
+import time
 
 
-# Init Logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[
-        logging.StreamHandler()
-    ]
-)
-logging.info('MAIN: Logging started!')
-
-# Init Client
-client = interactions.Client()
+def main():
+    print("Hello World")
 
 
-# On Load
-@interactions.listen()
-async def on_startup():
-    print('Logged in!')
+def run_scheduler():
+    schedule.every().day.at("02:00").do(main)
+    while True:
+        schedule.run_pending()
+        time.sleep(60)
 
 
-# Load Extensions
-client.load_extension('extensions.commands')
-
-# Start bot
-client.start(os.environ['DISCORD_BOT_TOKEN'])
+if __name__ == "__main__":
+    run_scheduler()
