@@ -4,6 +4,7 @@ import re
 import logging
 
 from typing import List, Dict, Union
+from notifications import get_notifier
 
 import utils.pullnsave as pullnsave
 
@@ -18,9 +19,6 @@ def __read_config(file_path: str) -> Dict:
     except FileNotFoundError:
         logging.error("CONFIG_HANDLER: Config yaml file not found: %s", file_path)
         sys.exit(1)
-    except Exception as e:
-        logging.error("CONFIG_HANDLER: Unhandled exception while loading config yaml: %s", e)
-        sys.exit(1)
 
 
 def __validate_year(year: Union[int, str]) -> bool:
@@ -34,22 +32,10 @@ def __validate_year(year: Union[int, str]) -> bool:
     return False
 
 
-def __expand_year_ranges(config: Dict) -> Dict:
-    for vehicle in config['vehicles']:
-        expanded_years = []
-        for year in vehicle['years']:
-            if isinstance(year, int):
-                expanded_years.append(year)
-            elif isinstance(year, str):
-                start, end = map(int, year.split('-'))
-                expanded_years.extend(range(start, end + 1))
-        vehicle['years'] = expanded_years
-    return config
-
-
 def __replace_spaces_in_models(config: Dict) -> Dict:
     for vehicle in config['vehicles']:
-        vehicle['models'] = [model.replace(' ', '+') for model in vehicle['models']]
+        if 'models' in vehicle:
+            vehicle['models'] = [model.replace(' ', '+') for model in vehicle['models']]
     return config
 
 
@@ -74,15 +60,15 @@ def __validate_config(config: Dict) -> None:
         if 'make' not in vehicle or not isinstance(vehicle['make'], str):
             raise ValueError("Each vehicle must have a 'make' string")
         
-        if 'models' not in vehicle or not isinstance(vehicle['models'], list):
-            raise ValueError("Each vehicle must have a 'models' list")
-        
         if 'years' not in vehicle or not isinstance(vehicle['years'], list):
             raise ValueError("Each vehicle must have a 'years' list")
         
         for year in vehicle['years']:
             if not __validate_year(year):
                 raise ValueError(f"Invalid year format: {year}")
+    
+    if 'notifications' in config:
+        __validate_notifications(config['notifications'])
 
 
 def __map_locations_to_store_ids(config: Dict) -> Dict:
@@ -100,15 +86,30 @@ def __map_locations_to_store_ids(config: Dict) -> Dict:
     return config
 
 
+def __validate_notifications(notifications: List[Dict]) -> None:
+    if not isinstance(notifications, list):
+        raise ValueError("Notifications must be a list")
+    
+    for notification in notifications:
+        if not isinstance(notification, dict):
+            raise ValueError("Each notification must be a dictionary")
+        
+        if 'type' not in notification:
+            raise ValueError("Each notification must have a 'type'")
+        
+        try:
+            notifier = get_notifier(notification)
+            notifier.validate_config(notification)
+        except ValueError as e:
+            raise ValueError(f"Invalid notification config: {str(e)}")
+
+
 def load_config(file_path: str) -> Dict:
     config = __read_config(file_path)
     try:
         __validate_config(config)
         logging.info("CONFIG_HANDLER: Config yaml validation successful!")
-        return __map_locations_to_store_ids(__replace_spaces_in_models(__expand_year_ranges(config)))
+        return __map_locations_to_store_ids(__replace_spaces_in_models(config))
     except ValueError as e:
         logging.error("CONFIG_HANDLER: Config yaml validation error: %s", e)
-        exit(1)
-    except Exception as e:
-        logging.error("CONFIG_HANDLER: Config error: %s", e)
         exit(1)

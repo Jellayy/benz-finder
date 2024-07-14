@@ -1,9 +1,19 @@
 vehicles:
-  - make: Ford
+  - make: Toyota
     models:
-      - FORD F150 PICKUP
-    years: 
-      - 1995
+      - Prius
+      - Camry
+    years:
+      - 2003-2004
+  - make: Nissan
+    models:
+      - Altima
+    years:
+      - 2005
 
 locations:
   - Glendale
+
+notifications:
+  - type: discord
+    webhook_url: "https://discord.com/api/webhooks/snip"

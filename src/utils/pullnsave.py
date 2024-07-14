@@ -17,18 +17,21 @@ def parse_vehicles(html):
         tbody = soup.find('tbody')
 
         listings = []
-        for tr in tbody.find_all('tr'):
-            listings.append({
-                "image": tr.find('img')['src'],
-                "model_year": tr.find_all('td')[1].get_text().strip(),
-                "model": tr.find('span', class_='notranslate').get_text().strip(),
-                "date_recieved": dt.datetime.strptime(tr.find_all('td')[3].get_text().strip(), "%m-%d-%y"),
-                "row": tr.find_all('td')[4].get_text().strip(),
-                "location": tr.find_all('td')[5].get_text().strip(),
-                "color": tr.find_all('td')[6].get_text().strip(),
-                "stock_number": tr.find_all('td')[7].get_text().strip(),
-                "VIN": tr.find_all('td')[8].get_text().strip()
-            })
+        try:
+            for tr in tbody.find_all('tr'):
+                listings.append({
+                    "image": tr.find('img')['src'],
+                    "model_year": tr.find_all('td')[1].get_text().strip(),
+                    "model": tr.find('span', class_='notranslate').get_text().strip(),
+                    "date_recieved": dt.datetime.strptime(tr.find_all('td')[3].get_text().strip(), "%m-%d-%y"),
+                    "row": tr.find_all('td')[4].get_text().strip(),
+                    "location": tr.find_all('td')[5].get_text().strip(),
+                    "color": tr.find_all('td')[6].get_text().strip(),
+                    "stock_number": tr.find_all('td')[7].get_text().strip(),
+                    "VIN": tr.find_all('td')[8].get_text().strip()
+                })
+        except:
+            pass
         
         return listings
     except Exception as e:
@@ -42,7 +45,13 @@ def search_vehicles(make, model=None, year=None, store=None, begin_date=None, en
     if model:
         data += f'&models={model}'
     if year:
-        data += f'&years={year}'
+        if isinstance(year, int):
+            data += f'&years={year}'
+            data += f'&endYears={year}'
+        elif isinstance(year, str):
+            start, end = map(int, year.split('-'))
+            data += f'&years={start}'
+            data += f'&endYears={end}'
     if store:
         data += f'&store={store}'
     if begin_date:
@@ -53,6 +62,7 @@ def search_vehicles(make, model=None, year=None, store=None, begin_date=None, en
 
     # Send request
     logging.info(f'PULLNSAVE: Sending Request: {data}')
+    print(f'PULLNSAVE: Sending Request: {data}')
     r = requests.post(
         url='https://pullnsave.com/wp-admin/admin-ajax.php',
         headers={
@@ -78,7 +88,6 @@ def get_stores():
 
     # Send request
     logging.info(f'PULLNSAVE: Sending Request: {data}')
-    print(f'PULLNSAVE: Sending Request: {data}')
     r = requests.post(
         url='https://pullnsave.com/wp-admin/admin-ajax.php',
         headers={
