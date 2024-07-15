@@ -1,15 +1,9 @@
 vehicles:
-  - make: Toyota
+  - make: Ford
     models:
-      - Prius
-      - Camry
+      - FORD F150 PICKUP
     years:
-      - 2003-2004
-  - make: Nissan
-    models:
-      - Altima
-    years:
-      - 2005
+      - 1995
 
 locations:
   - Glendale

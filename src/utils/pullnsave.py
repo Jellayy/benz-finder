@@ -70,7 +70,8 @@ def search_vehicles(make, model=None, year=None, store=None, begin_date=None, en
             'host': 'pullnsave.com',
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/112.0'
         },
-        data=data
+        data=data,
+        timeout=30
     )
 
     # Return response
@@ -95,7 +96,8 @@ def get_stores():
             'host': 'pullnsave.com',
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/112.0'
         },
-        data=data
+        data=data,
+        timeout=30
     )
 
     # Return response
@@ -119,7 +121,8 @@ def get_makes():
             'host': 'pullnsave.com',
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/112.0'
         },
-        data=data
+        data=data,
+        timeout=30
     )
 
     if r.status_code == 200:

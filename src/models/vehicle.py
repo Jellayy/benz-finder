@@ -16,7 +16,7 @@ class Vehicle(Base):
     last_seen = Column(DateTime, default=func.now(), onupdate=func.now())
 
     __table_args__ = (
-        UniqueConstraint('stock_number', 'model', name='uix_stock_make_model')
+        UniqueConstraint('stock_number', 'model', name='uix_stock_make_model'),
     )
 
     def __repr__(self):
