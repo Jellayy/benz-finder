@@ -1,6 +1,7 @@
 import schedule
 import time
 import logging
+import argparse
 
 import utils.config_handler as config_handler
 import utils.pullnsave as pullnsave
@@ -9,7 +10,7 @@ from logging.handlers import RotatingFileHandler
 from datetime import datetime, timedelta
 from sqlalchemy.exc import IntegrityError
 
-from models.base import Session, init_db
+from models.base import get_session, init_db
 from models.vehicle import Vehicle
 from notifications import get_notifier
 
@@ -18,7 +19,7 @@ CONFIG, NOTIFIERS = None, None
 
 
 def manage_vehicle_state(searched_vehicles: list, muted_run: bool = False) -> None:
-    session = Session()
+    session = get_session()
 
     # Process search results
     new_vehicles = []
@@ -112,12 +113,18 @@ def run_scheduler():
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config_file', '-c', help="Location of the configration yaml file. Default: ./benz_finder.yaml", type=str, default='./benz_finder.yaml')
+    parser.add_argument('--logfile', '-l', help="Location of the logfile. Default: ./benz_finder.log", type=str, default='./benz_finder.log')
+    parser.add_argument('--database', '-d', help="Location of the sqlite database. Default: ./benz_finder.db", type=str, default='./benz_finder.db')
+    args = parser.parse_args()
+
     # Init Logging
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(message)s",
         handlers=[
-            # RotatingFileHandler(f"benz-finder.log", maxBytes=5000000, backupCount=1),
+            RotatingFileHandler(args.logfile, maxBytes=5000000, backupCount=1),
             logging.StreamHandler()
         ]
     )
@@ -125,9 +132,9 @@ if __name__ == "__main__":
 
     # Load config
     logging.info("MAIN: Initializing config yaml...")
-    CONFIG = config_handler.load_config('benz_finder.yaml')
+    CONFIG = config_handler.load_config(args.config_file)
     NOTIFIERS = [get_notifier(notif_cfg) for notif_cfg in CONFIG['notifications']]
 
-    init_db()
+    init_db(args.database)
 
     run_scheduler()
