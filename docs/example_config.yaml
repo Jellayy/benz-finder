@@ -1,0 +1,26 @@
+vehicles:
+  - make: Mercedes-Benz
+    models:
+      - MERCEDES 300D
+      - MERCEDES 240D
+      - MERCEDES 450
+    years:
+      - 1972-1980
+  - make: Honda
+    models:
+      - CIVIC
+    years:
+      - 1999
+      - 2015
+
+locations:
+  - Glendale
+  - Phoenix - North
+  - Phoenix - South
+  - Gilbert
+  - Mesa
+
+notifications:
+  - type: discord
+    webhook_url: "https://discord.com/api/webhooks/snip"
+    message: "<@ID> New monitored vehicles found:"

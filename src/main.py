@@ -2,6 +2,7 @@ import schedule
 import time
 import logging
 import argparse
+import os
 
 import utils.config_handler as config_handler
 import utils.pullnsave as pullnsave
@@ -68,6 +69,7 @@ def manage_vehicle_state(searched_vehicles: list, muted_run: bool = False) -> No
     
     # Notify of newly found vehicles
     if len(new_vehicles) > 0 and not muted_run:
+        logging.info("MANAGE_VEHICLE_STATE: Sending notifications for new vehicles")
         for notifier in NOTIFIERS:
             notifier.send_vehicle_notification(new_vehicles)
 
@@ -101,15 +103,16 @@ def main(muted_run: bool = False) -> None:
     logging.info("MAIN: Scheduled job complete!")
 
 
-def run_scheduler():
+def run_scheduler(frequency: timedelta):
     # Run once silently to build initial database entries
-    main(muted_run=False)
+    main(muted_run=True)
 
     # Schedule real runs
-    schedule.every().day.at("02:00").do(main)
+    logging.info("MAIN: Scheduled to run every %s seconds", frequency.total_seconds())
+    schedule.every(frequency.total_seconds()).seconds.do(main)
     while True:
         schedule.run_pending()
-        time.sleep(60)
+        time.sleep(1)
 
 
 if __name__ == "__main__":
@@ -117,6 +120,7 @@ if __name__ == "__main__":
     parser.add_argument('--config_file', '-c', help="Location of the configration yaml file. Default: ./benz_finder.yaml", type=str, default='./benz_finder.yaml')
     parser.add_argument('--logfile', '-l', help="Location of the logfile. Default: ./benz_finder.log", type=str, default='./benz_finder.log')
     parser.add_argument('--database', '-d', help="Location of the sqlite database. Default: ./benz_finder.db", type=str, default='./benz_finder.db')
+    parser.add_argument('--frequency', '-f', help="How often benz_finder should search for new vehicles. Default: 1d", type=str, default="1d")
     args = parser.parse_args()
 
     # Init Logging
@@ -130,6 +134,15 @@ if __name__ == "__main__":
     )
     logging.info("MAIN: Logging started!")
 
+    # Parse run frequency from args and env
+    run_freq_str = os.environ.get("JOB_FREQUENCY") or args.frequency
+    if run_freq_str.endswith('h'):
+        run_freq_delta = timedelta(hours=int(run_freq_str[:-1]))
+    elif run_freq_str.endswith('d'):
+        run_freq_delta = timedelta(days=int(run_freq_str[:-1]))
+    else:
+        raise ValueError("Invalid run frequency format. Use 'h' for hours or 'd' for days (e.g., '12h', '1d')")
+
     # Load config
     logging.info("MAIN: Initializing config yaml...")
     CONFIG = config_handler.load_config(args.config_file)
@@ -137,4 +150,4 @@ if __name__ == "__main__":
 
     init_db(args.database)
 
-    run_scheduler()
+    run_scheduler(run_freq_delta)
