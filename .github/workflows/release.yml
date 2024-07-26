@@ -45,9 +45,12 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Get the version
-        id: get_version
-        run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
+      - name: Get the latest tag
+        id: get_latest_tag
+        run: |
+          git fetch --tags
+          LATEST_TAG=$(git describe --tags --abbrev=0)
+          echo ::set-output name=VERSION::$LATEST_TAG
 
       - name: Login to DockerHub
         uses: docker/login-action@v3
@@ -62,4 +65,4 @@ jobs:
           push: true
           tags: |
             jellayy/benz-finder:latest
-            jellayy/benz-finder:${{ steps.get_version.outputs.VERSION }}
+            jellayy/benz-finder:${{ steps.get_latest_tag.outputs.VERSION }}
