@@ -133,3 +133,30 @@ def get_makes():
     else:
         logging.error(f'PULLNSAVE: Unhandled Response Status: {r.status_code}')
         return False
+
+
+def get_models(make: str):
+    # Build request body
+    data = f'Form=searchVehicleForm&Year=0&endYear=0&Make={make}&action=getModels'
+
+    # Send request
+    logging.info(f'PULLNSAVE: Sending Request: {data}')
+    r = requests.post(
+        url='https://pullnsave.com/wp-admin/admin-ajax.php',
+        headers={
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+            'host': 'pullnsave.com',
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/112.0'
+        },
+        data=data,
+        timeout=30
+    )
+
+    if r.status_code == 200:
+        # Parse values from returned HTML
+        pattern = r"value='([^']*)"
+        makes = re.findall(pattern, r.text)
+        return makes
+    else:
+        logging.error(f'PULLNSAVE: Unhandled Response Status: {r.status_code}')
+        return False
