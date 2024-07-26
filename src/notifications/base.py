@@ -6,7 +6,7 @@ class BaseNotifier(ABC):
         pass
 
     @abstractmethod
-    def send_vehicle_notification(self, vehicle):
+    def send_vehicle_notification(self, vehicles: list) -> None:
         pass
 
     @classmethod

@@ -21,6 +21,7 @@ def manage_vehicle_state(searched_vehicles: list, muted_run: bool = False) -> No
     session = Session()
 
     # Process search results
+    new_vehicles = []
     for vehicle_data in searched_vehicles:
         vehicle = session.query(Vehicle).filter_by(
             stock_number=vehicle_data['stock_number'],
@@ -46,9 +47,9 @@ def manage_vehicle_state(searched_vehicles: list, muted_run: bool = False) -> No
                 date_recieved=vehicle_data['date_recieved']
             )
             session.add(new_vehicle)
-            # Notify of new vehicle
-            for notifier in NOTIFIERS:
-                notifier.send_vehicle_notification(vehicle_data)
+
+            # Add vehicle to notification queue
+            new_vehicles.append(vehicle_data)
     
     # Remove vehicles not seen in latest search
     cutoff_time = datetime.now() - timedelta(days=1)
@@ -56,7 +57,6 @@ def manage_vehicle_state(searched_vehicles: list, muted_run: bool = False) -> No
     for vehicle in removed_vehicles:
         logging.info("MANAGE_VEHICLE_STATE: Vehicle removed: %s %s - %s", vehicle.year, vehicle.model, vehicle.stock_number)
         session.delete(vehicle)
-    
     try:
         session.commit()
     except IntegrityError:
@@ -64,6 +64,11 @@ def manage_vehicle_state(searched_vehicles: list, muted_run: bool = False) -> No
         session.rollback()
     finally:
         session.close()
+    
+    # Notify of newly found vehicles
+    if len(new_vehicles) > 0 and not muted_run:
+        for notifier in NOTIFIERS:
+            notifier.send_vehicle_notification(new_vehicles)
 
 
 def run_search() -> list:
@@ -88,15 +93,18 @@ def run_search() -> list:
     return vehicles
 
 
-def main():
+def main(muted_run: bool = False) -> None:
     logging.info("MAIN: Running scheduled job...")
     search_results = run_search()
-    manage_vehicle_state(search_results)
+    manage_vehicle_state(search_results, muted_run)
     logging.info("MAIN: Scheduled job complete!")
 
 
 def run_scheduler():
-    main()
+    # Run once silently to build initial database entries
+    main(muted_run=False)
+
+    # Schedule real runs
     schedule.every().day.at("02:00").do(main)
     while True:
         schedule.run_pending()
@@ -115,6 +123,7 @@ if __name__ == "__main__":
     )
     logging.info("MAIN: Logging started!")
 
+    # Load config
     logging.info("MAIN: Initializing config yaml...")
     CONFIG = config_handler.load_config('benz_finder.yaml')
     NOTIFIERS = [get_notifier(notif_cfg) for notif_cfg in CONFIG['notifications']]

@@ -3,7 +3,7 @@ vehicles:
     models:
       - FORD F150 PICKUP
     years:
-      - 1995
+      - 1992-1996
 
 locations:
   - Glendale
@@ -11,3 +11,4 @@ locations:
 notifications:
   - type: discord
     webhook_url: "https://discord.com/api/webhooks/snip"
+    message: "<@ID> New monitored vehicles found:"

@@ -31,11 +31,11 @@ def parse_vehicles(html):
                     "VIN": tr.find_all('td')[8].get_text().strip()
                 })
         except:
-            pass
+            logging.info("PULLNSAVE.PARSE_VEHICLES: No results returned from search query")
         
         return listings
     except Exception as e:
-        logging.error(f'HTML_PARSER-PARSE_LISTINGS: Parsing Error: {e}')
+        logging.error(f'PULLNSAVE.PARSE_VEHICLES: Parsing Error: {e}')
         return []
 
 
