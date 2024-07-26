@@ -1,3 +1,8 @@
+![GitHub Release](https://img.shields.io/github/v/release/jellayy/benz-finder)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/jellayy/benz-finder/release.yml)
+![Docker Pulls](https://img.shields.io/docker/pulls/jellayy/benz-finder)
+
+
 # Benz-Finder
 
 A Python-based Docker app that periodically scrapes PullNSave locations for new vehicle inventory. It uses a database to track state, compares findings against user-defined vehicle criteria, and sends notifications via configurable channels (e.g. Discord webhooks) when matches are found.
