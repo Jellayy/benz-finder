@@ -380,3 +380,6 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/python,visualstudiocode,git,pycharm,macos,windows
+
+benz_finder.db
+src/benz_finder.yaml

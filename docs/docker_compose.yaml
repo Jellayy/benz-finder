@@ -1,0 +1,9 @@
+services:
+  benz-finder:
+    container_name: benz-finder
+    image: jellayy/benz-finder
+    volumes:
+      - /path/to/benz_finder:/benz_finder
+    environment:
+      - JOB_FREQUENCY=1d
+    restart: unless-stopped
